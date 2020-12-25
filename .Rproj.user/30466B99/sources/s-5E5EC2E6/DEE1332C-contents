@@ -1,0 +1,222 @@
+# This R code of exact computation of hybrid search in the logistic regresson model.
+# exact-logistic-hybrid
+library(mvtnorm)
+library(xtable)
+library(MCMCpack)
+rm(list = ls())
+path <- '~/Dropbox/Goh/Project_3/code/logistic-Oct19/result'
+code_name <- 'exact-logistic-hybrid'
+#### Functions ####
+# log of exact marginal posterior likelihood function: log(S(r))
+# x0 comes first
+neg.log.exact.likelihd <- function(beta) {
+  X.r = x0
+  len.beta <- length(beta)
+  delta <- X.r%*%as.matrix(beta) # n times 1 vector
+  f = sum(y*delta - log(1+exp(delta)))- len.beta/2*log(2*pi*lambda) - 
+    crossprod(beta)/(2*lambda) -  lchoose(p, len.beta)
+  return(-f)
+}
+sample.with.prob <- function(x, nei){
+  if (!is.null(nei)) {
+    x.max <- max(x)
+    x_max <- exp(x - x.max)
+    x.prob <- x_max/sum(x_max)
+    x.sample <- nei[[sample(x = c(1:length(x)),size = 1,prob = x.prob, replace = FALSE)]]
+  } else {x.sample = NULL}
+  return(x.sample)
+}
+REP = 100
+iter = 100
+lambda = 10000
+rho = 0.6
+# (n,p) = 100,500; 300,1000; 500,1500
+n=600
+p=2000
+full.model <- 1:p
+Sig_x = rho^(abs(matrix(full.model,p,p)-t(matrix(full.model,p,p))))
+FDR<-rep(NA,REP)
+FOR<-rep(NA,REP)
+FNR<-rep(NA,REP)
+t2 <- rep(NA,REP)
+SIZE <- rep(NA,REP)
+n.true <- rep(NA,REP)
+break.true <- rep(NA,REP)
+hat.gamma <- matrix(0,p,REP)
+HAM <- rep(NA,REP)
+ITER.num <- rep(NA,REP)
+log.S.larger.true = rep(NA,REP)
+log.S.smaller.true = rep(NA,REP)
+HAT.G1 <- list()
+for (i in 1:REP) {
+  print(i)
+  # i=1
+  set.seed(1314+i)
+  var.true <- c(1,3,5,7,9)
+  k.true=length(var.true)
+  Beta = rep(0,p)
+  # beta.true <- c(0.8,1,-1)
+  beta.true <- c(1,0.9,-0.9,0.9,-0.9)
+  Beta[var.true] = beta.true
+  var.false <- setdiff((full.model),var.true)
+  gamma.true <- rep(0,p)
+  gamma.true[var.true] <- 1
+  X = rmvnorm(n,rep(0,p),Sig_x,method="chol")
+  X[,1]<-rep(1,n)
+  eta = X%*%Beta
+  pi.true <- 1/(1+exp(-eta))
+  y = rbinom(n,size = 1,prob = pi.true)
+  #### GLM-Poission regression ####
+  X.true <- X[, var.true]
+  x0=X.true
+  hat.beta.true.optim <- optim(par = rep(0,k.true), fn = neg.log.exact.likelihd, method = "BFGS")
+  hat.beta.true <- hat.beta.true.optim$par
+  post.margin.true <- -hat.beta.true.optim$value
+  summary(glm(y~X.true-1,family="binomial"))
+  t1 <- Sys.time()
+  iter.num <- 1
+  num_break = 0
+  # initial model with |r| = 1
+  hat.G1 <- 1
+  hat.G1.t <- hat.G1
+  hat.G0.t <- full.model[-hat.G1.t]
+  X.r <- X[, hat.G1.t]
+  x0 <- X.r
+  likelihd.optim <- optim(par = rep(0,length(hat.G1.t)), fn = neg.log.exact.likelihd, method = 'BFGS')
+  log.S <- -likelihd.optim$value
+  while (1>0) {
+    while(1>0) {
+      iter.num <- iter.num + 1
+      ## 5.i)
+      hat.G0.t <- full.model[-hat.G1.t]
+      k = length(hat.G1.t)
+      X.r <- X[, hat.G1.t]
+      X_r <- X[, hat.G0.t]
+      ## 5.ii)
+      add.nei <- lapply(hat.G0.t, FUN = function(x) sort(c(hat.G1.t, x)))
+      ### N_-: deletion neighbor
+      if (k>1) {
+        del.nei <- lapply(2:k, FUN = function(x) hat.G1.t[-x]) # not delete intercept
+      } else {
+        del.nei <- NULL
+      }
+      neighbor <- c(add.nei, del.nei)
+      LOG.exact.likelihd <- rep(NA,length(neighbor))
+      # HAT.beta.t <- list()
+      j = 1
+      for (model in neighbor) {
+        x0 <- X[,model]
+        likelihd.optim <- optim(par = rep(0,length(model)), fn = neg.log.exact.likelihd, method = 'BFGS')
+        LOG.exact.likelihd[j] <- - likelihd.optim$value
+        j = j + 1
+      }
+      hat.G1.which.max <- which.max(LOG.exact.likelihd)
+      hat.G1.t <- neighbor[[hat.G1.which.max]]
+      log.S.t <- LOG.exact.likelihd[hat.G1.which.max]
+      if (log.S.t>log.S) {
+        hat.G1 <- hat.G1.t
+        log.S <- log.S.t
+      } else {break}
+      # if (length(hat.G1.t)==length(hat.G1) && all(hat.G1.t==hat.G1)) {hat.G1 <- hat.G1.t; break}
+    }
+    # 3 return \hat\gamma
+    # 4 
+    hat.G1.t <- hat.G1
+    # 5 stochastic search
+    for (m in 1:iter) {
+      # print(m)
+      iter.num <- iter.num + 1
+      ## 5.i)
+      hat.G0.t <- full.model[-hat.G1.t]
+      k = length(hat.G1.t)
+      X.r <- X[, hat.G1.t]
+      X_r <- X[, hat.G0.t]
+      ## 5.ii)
+      add.nei <- lapply(hat.G0.t, FUN = function(x) sort(c(hat.G1.t, x)))
+      ### N_-: deletion neighbor
+      if (k>1) {
+        del.nei <- lapply(2:k, FUN = function(x) hat.G1.t[-x]) # not delete intercept
+      } else {
+        del.nei <- NULL
+      }
+      neighbor <- c(add.nei, del.nei)
+      LOG.exact.likelihd <- rep(NA,length(neighbor))
+      j = 1
+      for (model in neighbor) {
+        x0 <- X[,model]
+        likelihd.optim <- optim(par = rep(0,length(model)), fn = neg.log.exact.likelihd, method = 'BFGS')
+        LOG.exact.likelihd[j] <- - likelihd.optim$value
+        j = j + 1
+      }
+      hat.G1.which.max <- which.max(LOG.exact.likelihd)
+      hat.G1.star <- neighbor[[hat.G1.which.max]]
+      log.S.star <- LOG.exact.likelihd[hat.G1.which.max]
+      if (log.S.star>log.S) {
+        log.S = log.S.star
+        hat.G1 <- hat.G1.star
+        print(paste('find a better solution in' ,m))
+        num_break = num_break + 1
+        break
+      } else {
+        hat.G1.t <- sample.with.prob(LOG.exact.likelihd, neighbor)
+      }
+    }
+    if (m==iter){break}
+  }
+  HAT.G1[[i]] <- hat.G1
+  log.S.larger.true[i] = log.S>post.margin.true
+  log.S.smaller.true[i] = log.S<post.margin.true
+  ITER.num[i] <- iter.num
+  hat.G0 <- setdiff(full.model, hat.G1)
+  SIZE[i] <- length(hat.G1)
+  FDR[i] <- round(
+    ifelse(SIZE[i] != 0, round(length(setdiff(hat.G1, var.true))/SIZE[i],5), 0),4)
+  FOR[i] <- round(length(setdiff(hat.G0, var.false))/(p-SIZE[i]),4)
+  FNR[i] <- round(length(setdiff(var.true, hat.G1))/p,4)
+  n.true[i] <-ifelse(length(hat.G1)==k.true,
+                     as.numeric(all(hat.G1 == var.true))*100,0)
+  break.true[i] <- (num_break>0)*REP
+  hat.gamma[hat.G1,i] <- 1
+  HAM[i] <- sum(abs(hat.gamma[,i]- gamma.true))
+  t2[i] <- round(difftime(Sys.time(),t1,units = 'secs'), 3)
+  print(paste0(i,'th Rep',',FDR=',FDR[i],',iter=', ITER.num[i],
+               ',TRUE=',n.true[i],',Nvar=',SIZE[i],
+               ',HAM=',HAM[i],',Time=',t2[i], 
+               ',large = ',log.S.larger.true[i], ',small = ',log.S.smaller.true[i]))
+}
+num.log.S.larger.true <- sum(log.S.larger.true==TRUE)
+num.log.S.smaller.true <- sum(log.S.smaller.true==TRUE)
+result0 <- cbind(FDR,FNR,n.true,SIZE,HAM,t2)
+result1 <- rbind(colMeans(result0), apply(result0,2,sd)/sqrt(REP))
+result2 <- data.frame(matrix(result1, nrow = 1, ncol =  12))
+is.num <- sapply(result2, is.numeric)
+result2[is.num] <- lapply(result2[is.num], round, 3)
+result2[2] <- paste0("(", result2[2],")")
+result2[4] <- paste0("(", result2[4],")")
+result2[6] <- paste0("(", result2[6],")")
+result2[8] <- paste0("(", result2[8],")")
+result2[10] <- paste0("(", result2[10],")")
+result2[12] <- paste0("(", result2[12],")")
+result3 <- data.frame(FDR = numeric(1), FNR = numeric(1),
+                      true =numeric(1), SIZE = double(1), 
+                      HAM=integer(1), TIME=double(1))
+result3$FDR = paste0(result2$X1,result2$X2)
+result3$FNR = paste0(result2$X3,result2$X4)
+result3$true = paste0(result2$X5,result2$X6)
+result3$SIZE = paste0(result2$X7,result2$X8)
+result3$HAM = paste0(result2$X9,result2$X10)
+result3$TIME = paste0(result2$X11,result2$X12)
+result.tex <- xtable(result3)
+print(result3)
+file.name <- paste0(code_name,'--n=',n,'--p=',p,'--rho=',rho)
+filename.txt <- paste0(file.name,'.txt')
+filename.rd <- paste0(file.name,'.RData')
+setwd(path)
+capture.output(list(file.name, result3, var.true,beta.true,result.tex,num.log.S.larger.true,
+                    num.log.S.smaller.true,which(log.S.larger.true),which(log.S.smaller.true)), file=filename.txt)
+save(list = c('file.name','var.true','beta.true','FDR','ITER.num','n.true','SIZE','HAM','t2',
+              'result3','result0','result.tex','break.true','FNR','HAT.G1',
+              'num.log.S.larger.true','num.log.S.smaller.true',
+              'log.S.larger.true','log.S.smaller.true'),
+     file = filename.rd)
+

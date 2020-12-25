@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1608847541850.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "36A99F05",
+    "lastKnownWriteTime" : 1608847612,
+    "last_content_update" : 1608847612175,
+    "path" : "~/Dropbox/sjin-blog/RdemoBayesGLM/_bookdown.yml",
+    "project_path" : "_bookdown.yml",
+    "properties" : {
+        "cursorPosition" : "5,18",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "yaml"
+}

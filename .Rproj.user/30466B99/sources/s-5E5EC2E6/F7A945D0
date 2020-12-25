@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1608920887352.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F7A945D0",
+    "lastKnownWriteTime" : 1606748039,
+    "last_content_update" : 1606748039,
+    "path" : "~/Dropbox/Goh/Project_3/code/speed/simulation-plot-1117.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "4,10",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

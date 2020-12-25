@@ -1,0 +1,16 @@
+@Book{KarlineBook,
+  title = {A Practical Guide to Ecological Modelling. Using R as a
+    Simulation Platform },
+  publisher = {Springer},
+  year = {2009},
+  author = {Karline Soetaert and Peter M.J. Herman},
+  pages = {372},
+  note = {ISBN 978-1-4020-8623-6},
+  }
+@Manual{KarlinePackage,
+  title = {rootSolve: Nonlinear root finding, equilibrium and
+    steady-state analysis of ordinary differential equations },
+  year = {2009},
+  author = {Karline Soetaert},
+  note = {R package 1.6},
+}

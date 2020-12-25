@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1608850716468.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "7EC6733F",
+    "lastKnownWriteTime" : 1608867301,
+    "last_content_update" : 1608867301930,
+    "path" : "~/Dropbox/Goh/Project_3/code/logistic-Oct19/proposed-logistic-hybrid-main.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "16,11",
+        "scrollLine" : "8"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

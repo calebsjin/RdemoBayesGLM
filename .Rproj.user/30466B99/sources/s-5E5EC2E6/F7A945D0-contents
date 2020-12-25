@@ -1,0 +1,82 @@
+library(ggplot2)
+library(tidyverse)
+library(cowplot)
+library(ggpubr)
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+)
+# alg.name=c("Alg 1", "Alg 2", "Alg 3","Alg 4")
+alg.name=c("Deterministic", "Stochastic", "Hybrid","Proposed")
+Algorithm <- factor(x = alg.name, levels = alg.name)
+time.gau.1 <- c(14.989,1280.807,686.39,4.006)/60
+true.gau.1 <- c(82,98,98,99)
+group.1 <- rep("1",4)
+model.gau.1 <- rep("Gaussian",4)
+
+time.log.1 <- c(3.919,608.707,327.568,37.553)/60
+true.log.1 <- c(59,93,93,93)
+model.log.1 <- rep("Logistic",4)
+
+time.poi.1 <- c(4.435,447.756,219.61,15.749)/60
+true.poi.1 <- c(73,92,92,92)
+model.poi.1 <- rep("Poisson",4)
+
+time.gau.2 <- c(39.531,2890.858,1529.106,17.840)/60
+true.gau.2 <- c(96,rep(100,3))
+model.gau.2 <- rep("Gaussian",4)
+
+time.log.2 <- c(34.151,2881.192,1489.14,141.151)/60
+true.log.2 <- c(82,rep(99,3))
+model.log.2 <- rep("Logistic",4)
+
+time.poi.2 <- c(28.287,2580.434,1303.862,50.366)/60
+true.poi.2 <- c(68,rep(99,3))
+model.poi.2 <- rep("Poisson",4)
+
+gau.data <- data.frame(
+  Time = c(time.gau.1, time.gau.2),
+  Algorithm = rep(Algorithm,2), 
+  group = rep(c('Case I','Case II'),each = 4)
+)
+log.data <- data.frame(
+  Time = c(time.log.1, time.log.2),
+  Algorithm = rep(Algorithm,2), 
+  group = rep(c('Case I','Case II'),each = 4)
+)
+poi.data <- data.frame(
+  Time = c(time.poi.1, time.poi.2),
+  Algorithm = rep(Algorithm,2), 
+  group = rep(c('Case I','Case II'),each = 4)
+)
+ggplot.G=ggplot(gau.data, aes(color = Algorithm)) +
+  geom_point(aes(x = group, y = Time, shape = Algorithm), size=3)+ 
+  theme(legend.position="none") + ggtitle(c("Gaussian"))+ 
+  scale_shape_manual(values=c(0,1,2,20)) + 
+  ylab('Time(min)') + xlab('')
+ggplot.G
+
+ggplot.L=ggplot(log.data, aes(color = Algorithm)) +
+  geom_point(aes(x = group, y = Time, shape = Algorithm), size=3)+ 
+  theme(legend.position="none") + ggtitle(c("Logistic"))+ 
+  scale_shape_manual(values=c(0,1,2,20)) + 
+  ylab('Time(min)') + xlab('')
+ggplot.L
+
+ggplot.P=ggplot(poi.data, aes(color = Algorithm)) +
+  geom_point(aes(x = group, y = Time, shape = Algorithm), size=3)+ 
+  theme(legend.position="none") + ggtitle(c("Poisson"))+ 
+  scale_shape_manual(values=c(0,1,2,20)) + 
+  ylab('Time(min)') + xlab('')
+ggplot.P
+
+plot_merge = ggarrange(
+  ggplot.G, ggplot.L,ggplot.P, nrow = 1,
+  common.legend = TRUE, legend = "bottom"
+)
+filepath <- '~/Dropbox/Goh/Project_3/manuscript/version-Nov29'
+ggsave(filename = 'simulation.pdf', plot = plot_merge,dpi = 400, 
+       path = filepath, height = 4, width = 6)
+
+
+

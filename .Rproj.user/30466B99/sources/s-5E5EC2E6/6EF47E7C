@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1608847542118.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "6EF47E7C",
+    "lastKnownWriteTime" : 1608927976,
+    "last_content_update" : 1608927976218,
+    "path" : "~/Dropbox/sjin-blog/RdemoBayesGLM/index.Rmd",
+    "project_path" : "index.Rmd",
+    "properties" : {
+        "cursorPosition" : "225,26",
+        "scrollLine" : "187",
+        "source_window_id" : "w9ew1412mpwvq"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
